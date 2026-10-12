@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: pdf-to-md
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  # Spring Boot Docker Compose сам поднимет контейнеры из ./docker-compose.yml
+  docker:
+    compose:
+      lifecycle-management: start-only
+      file: docker-compose.yml
+
+app:
+  storage:
+    ttl-minutes: 30
+    base-url: http://localhost:8080
+  llm:
+    enabled: true
+    base-url: http://localhost:8081/v1
+    api-key: local-no-auth
+    model: local-model
+    max-input-chars: 8000
+
+logging:
+  level:
+    com.example.pdftomd: INFO
+    org.springframework.boot.docker: INFO

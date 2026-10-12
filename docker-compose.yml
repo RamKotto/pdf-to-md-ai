@@ -1,0 +1,44 @@
+services:
+  # Скачивает модель при первом запуске, потом контейнер завершается
+  model-downloader:
+    image: alpine:latest
+    volumes:
+      - ./models:/models
+    entrypoint: >
+      /bin/sh -c "
+      if [ ! -f /models/qwen2.5-1.5b-instruct-q4_k_m.gguf ]; then
+        apk add --no-cache curl &&
+        echo 'Downloading Qwen2.5 1.5B Instruct (~1.1GB)...' &&
+        curl -L -o /models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+        'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf' &&
+        echo 'Download complete!';
+      else
+        echo 'Model already exists, skipping download.';
+      fi
+      "
+    restart: "no"
+
+  # Локальный OpenAI-совместимый сервер
+  llamacpp:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    depends_on:
+      model-downloader:
+        condition: service_completed_successfully
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./models:/models
+    command: >
+      --host 0.0.0.0
+      --port 8081
+      --model /models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+      --ctx-size 8192
+      --threads 4
+      --n-predict 4096
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s
+      retries: 5
+    restart: unless-stopped

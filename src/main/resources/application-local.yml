@@ -1,0 +1,8 @@
+app:
+  llm:
+    enabled: false
+
+spring:
+  docker:
+    compose:
+      enabled: false
