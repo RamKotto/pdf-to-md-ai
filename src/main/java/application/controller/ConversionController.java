@@ -1,7 +1,7 @@
-package controller;
+package application.controller;
 
-import config.AppProperties;
-import dto.ConvertResponse;
+import application.config.AppProperties;
+import application.dto.ConvertResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -12,9 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import service.ConversionService;
-import service.SelfDeletingResource;
-import service.StorageService;
+import application.service.ConversionService;
+import application.service.SelfDeletingResource;
+import application.service.StorageService;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

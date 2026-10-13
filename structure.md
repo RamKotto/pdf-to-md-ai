@@ -17,20 +17,20 @@ pdf-to-md/
 └── src/
     ├── main/
     │   ├── java/
-    │   │   ├── PdfToMdApplication.java
-    │   │   ├── config/
+    │   │   ├── application.PdfToMdApplication.java
+    │   │   ├── application.config/
     │   │   │   ├── AppProperties.java
     │   │   │   └── LlmProperties.java
-    │   │   ├── controller/
+    │   │   ├── application.controller/
     │   │   │   └── ConversionController.java
-    │   │   ├── service/
+    │   │   ├── application.service/
     │   │   │   ├── ConversionService.java
     │   │   │   ├── LlmMarkdownEnhancer.java
     │   │   │   ├── SelfDeletingResource.java
     │   │   │   └── StorageService.java
-    │   │   ├── dto/
+    │   │   ├── application.dto/
     │   │   │   └── ConvertResponse.java
-    │   │   └── exception/
+    │   │   └── application.exception/
     │   │       └── GlobalExceptionHandler.java
     │   └── resources/
     │       ├── application.yml

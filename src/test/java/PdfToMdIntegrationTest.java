@@ -29,7 +29,7 @@ class PdfToMdIntegrationTest {
 
 //    @Test
     void convertsAndDeletesAfterDownload() throws Exception {
-        byte[] pdf = createPdf("Hello PDF to MD service");
+        byte[] pdf = createPdf("Hello PDF to MD application.service");
 
         // 1. Конвертация
         String response = mockMvc.perform(multipart("/api/convert")

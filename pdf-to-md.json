@@ -1,0 +1,260 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "name": "PDF to Markdown",
+    "description": "Сервис конвертации PDF в Markdown с локальной LLM. Хост: http://localhost:8080",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "downloadId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Конвертировать PDF",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Статус 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Есть downloadUrl в ответе', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('downloadUrl');",
+              "    pm.expect(json.downloadUrl).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.test('Есть expiresIn в ответе', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('expiresIn');",
+              "});",
+              "",
+              "// Автоматически сохраняем id для последующего скачивания",
+              "const json = pm.response.json();",
+              "const parts = json.downloadUrl.split('/');",
+              "const id = parts[parts.length - 1];",
+              "pm.collectionVariables.set('downloadId', id);",
+              "console.log('Сохранён downloadId:', id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": [],
+              "description": "PDF-файл для конвертации. Выберите файл вручную в Postman."
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/convert",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "convert"]
+        },
+        "description": "Загружает PDF, конвертирует в Markdown, возвращает ссылку на скачивание.\n\n**Важно:** в теле запроса (Body → form-data) нужно вручную выбрать PDF-файл — поле `file` типа File."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Скачать Markdown",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Статус 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Content-Type = text/markdown', function () {",
+              "    pm.expect(pm.response.headers.get('Content-Type'))",
+              "        .to.include('text/markdown');",
+              "});",
+              "",
+              "pm.test('Есть Content-Disposition с filename', function () {",
+              "    const cd = pm.response.headers.get('Content-Disposition');",
+              "    pm.expect(cd).to.include('attachment');",
+              "    pm.expect(cd).to.include('.md');",
+              "});",
+              "",
+              "pm.test('Тело непустое', function () {",
+              "    pm.expect(pm.response.text().length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/download/{{downloadId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "download", "{{downloadId}}"]
+        },
+        "description": "Скачивает сконвертированный Markdown-файл.\n\n**Важно:** файл удаляется на сервере сразу после отдачи — повторное скачивание вернёт 404.\n\nВ Postman нажмите **Send and Download**, чтобы сохранить .md файл."
+      },
+      "response": []
+    },
+    {
+      "name": "3. Проверка: повторное скачивание (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Статус 404 Not Found', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Сообщение об ошибке', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.message).to.include('не найден');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/download/{{downloadId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "download", "{{downloadId}}"]
+        },
+        "description": "Проверяет, что файл удалён после первого скачивания. Должен вернуть 404.\n\nЗапускать после пункта 2."
+      },
+      "response": []
+    },
+    {
+      "name": "4. Ошибка: не PDF файл",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Статус 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Сообщение про PDF', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.message).to.include('PDF');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": [],
+              "description": "Выберите любой НЕ-PDF файл (например .txt), чтобы проверить валидацию."
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/convert",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "convert"]
+        },
+        "description": "Проверка валидации: сервис должен отклонить не-PDF файл с ошибкой 400."
+      },
+      "response": []
+    },
+    {
+      "name": "5. Ошибка: пустой файл",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Статус 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "text",
+              "value": "",
+              "description": "Пустое значение — имитация пустого файла."
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/convert",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "convert"]
+        },
+        "description": "Проверка валидации: сервис должен отклонить пустой файл с ошибкой 400."
+      },
+      "response": []
+    },
+    {
+      "name": "6. Health-check (необязательно)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Сервис отвечает', function () {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 404, 405]);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/convert",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "convert"]
+        },
+        "description": "Проверка, что сервис поднят. Ожидается 405 (Method Not Allowed) — это нормально, потому что /api/convert принимает только POST. Если получили connection refused — сервис не запущен."
+      },
+      "response": []
+    }
+  ]
+}
