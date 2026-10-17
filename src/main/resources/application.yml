@@ -17,6 +17,14 @@ app:
     enabled: true
     max-links: 5
     max-chars-per-link: 100000
+    fetch-timeout-ms: 10000
+    user-agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+  limits:
+    max-text-chars: 30000
+  prompts:
+    pdf: "Ты — агент по преобразованию PDF в Markdown. Сохраняй весь текст. Восстанавливай таблицы. Только Markdown."
+    text: "Приведи текст к чистому Markdown. Не меняй содержание."
+    swagger: "Оформи Swagger/OpenAPI в Markdown. Сохрани эндпоинты, таблицы параметров. Только Markdown."
 
 openrouter:
   base-url: https://openrouter.ai/api/v1
@@ -24,9 +32,16 @@ openrouter:
   model: openrouter/free
   max-output-tokens: 30000
   timeout-seconds: 600
+  connect-timeout-seconds: 30
   pdf-engine: mistral-ocr
   referer: http://localhost:8080
   title: pdf-to-md
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 logging:
   level:
