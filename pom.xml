@@ -36,7 +36,8 @@
 
         <!--
           Spring Boot Docker Compose: development-time зависимость.
-          Она нужна только для локального запуска контейнеров.
+          Нужна только для локального запуска контейнеров.
+          Исключается из финального JAR через excludeDockerCompose=true.
         -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -44,11 +45,21 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- PDFBox для извлечения текста из PDF -->
+        <!--
+          PDFBox для извлечения текста из PDF.
+          Исключаем commons-logging, чтобы избежать конфликта с spring-jcl
+          (предупреждение "Standard Commons Logging discovery in action with spring-jcl").
+        -->
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>${pdfbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Официальный Java-клиент для OpenAI API -->
@@ -79,7 +90,7 @@
                 <configuration>
                     <!--
                       Ключевой момент: excludeDockerCompose = true.
-                      Гарантирует, что spring-boot-docker-compose НЕ попадет
+                      Гарантирует, что spring-boot-docker-compose НЕ попадёт
                       в финальный JAR при `mvn package`.
                     -->
                     <excludeDockerCompose>true</excludeDockerCompose>

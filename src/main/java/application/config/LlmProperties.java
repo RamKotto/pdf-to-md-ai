@@ -30,15 +30,15 @@ public class LlmProperties {
     /**
      * Максимум символов в одном запросе. Превышение — пропуск LLM.
      */
-    private int maxInputChars = 8000;
+    private int maxInputChars = 30000;
 
     /**
      * Максимум токенов в ответе.
      */
-    private int maxOutputTokens = 4096;
+    private int maxOutputTokens = 30000;
 
     /**
      * Таймаут запроса в секундах.
      */
-    private int timeoutSeconds = 120;
+    private int timeoutSeconds = 10000;
 }
