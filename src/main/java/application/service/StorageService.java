@@ -34,7 +34,6 @@ public class StorageService {
         String safeBase = sanitize(stripExtension(originalName));
         String filename = id + "_" + safeBase + ".md";
         Path target = props.getStorage().getDirectory().resolve(filename);
-
         try {
             Files.writeString(target, markdown);
         } catch (IOException e) {
@@ -44,7 +43,8 @@ public class StorageService {
         return new SavedFile(id, filename, target);
     }
 
-    public record SavedFile(String id, String filename, Path path) {}
+    public record SavedFile(String id, String filename, Path path) {
+    }
 
     private String stripExtension(String name) {
         if (name == null) return "document";

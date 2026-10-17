@@ -2,11 +2,13 @@ package application.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import java.nio.file.Path;
 
 @Data
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
+
     private Storage storage = new Storage();
     private Links links = new Links();
 

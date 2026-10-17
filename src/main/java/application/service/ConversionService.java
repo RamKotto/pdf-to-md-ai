@@ -22,20 +22,16 @@ public class ConversionService {
 
     public String urlToMarkdown(String url, String filename) {
         if (url == null || url.isBlank()) throw new IllegalArgumentException("URL не указан");
-
         String lower = url.toLowerCase();
         boolean looksLikePdf = lower.endsWith(".pdf") || lower.contains("format=pdf");
-
         String markdown = looksLikePdf
                 ? openRouter.convertPdfUrl(url, filename != null ? filename : "document.pdf")
                 : openRouter.convertTextUrl(url, filename != null ? filename : "document.md");
-
         return processResult(markdown);
     }
 
     private String processResult(String markdown) {
         String cleaned = MULTIPLE_BLANK_LINES.matcher(markdown).replaceAll("\n\n").strip() + "\n";
-
         if (props.getLinks().isEnabled()) {
             cleaned = linkResolver.enrichWithLinkedContent(
                     cleaned,
@@ -43,7 +39,6 @@ public class ConversionService {
                     props.getLinks().getMaxCharsPerLink()
             );
         }
-
         return cleaned;
     }
 }

@@ -17,6 +17,11 @@ public class OpenRouterClient {
 
     private final OpenRouterProperties props;
     private final RestClient http;
+    private static final String PDF_PROMPT = "Ты — агент по преобразованию PDF в Markdown. " +
+            "Сохраняй весь текст. Восстанавливай таблицы. Только Markdown.";
+    private static final String TEXT_PROMPT = "Приведи текст к чистому Markdown. Не меняй содержание.";
+    private static final String SWAGGER_PROMPT = "Оформи Swagger/OpenAPI в Markdown. " +
+            "Сохрани эндпоинты, таблицы параметров. Только Markdown.";
 
     public OpenRouterClient(OpenRouterProperties props, RestClient openRouterRestClient) {
         this.props = props;
@@ -82,7 +87,6 @@ public class OpenRouterClient {
                     .body(body)
                     .retrieve()
                     .body(Map.class);
-
             if (response == null) throw new IllegalStateException("Пустой ответ");
             var choices = (List<Map<String, Object>>) response.get("choices");
             var message = (Map<String, Object>) choices.get(0).get("message");
@@ -106,10 +110,4 @@ public class OpenRouterClient {
         String lower = content.toLowerCase();
         return lower.contains("swagger") || lower.contains("openapi") || lower.contains("paths:");
     }
-
-    private static final String PDF_PROMPT = "Ты — агент по преобразованию PDF в Markdown. " +
-            "Сохраняй весь текст. Восстанавливай таблицы. Только Markdown.";
-    private static final String TEXT_PROMPT = "Приведи текст к чистому Markdown. Не меняй содержание.";
-    private static final String SWAGGER_PROMPT = "Оформи Swagger/OpenAPI в Markdown. " +
-            "Сохрани эндпоинты, таблицы параметров. Только Markdown.";
 }
