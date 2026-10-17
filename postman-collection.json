@@ -1,0 +1,103 @@
+{
+	"info": {
+		"name": "pdf-to-md",
+		"description": "Коллекция запросов для сервиса конвертации PDF/URL в Markdown (pdf-to-md).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Конвертировать PDF файл",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/path/to/your/document.pdf"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/convert",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "convert"]
+				},
+				"description": "Загружает PDF-файл (multipart/form-data) и возвращает Markdown."
+			},
+			"response": []
+		},
+		{
+			"name": "Конвертировать по ссылке (PDF/HTML/Swagger)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"url\": \"https://raw.githubusercontent.com/example/api/main/openapi.yaml\",\n  \"filename\": \"swagger.yaml\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/convert",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "convert"]
+				},
+				"description": "Конвертирует документ по ссылке. Поддерживаются PDF, YAML/JSON (Swagger/OpenAPI) и HTML-страницы."
+			},
+			"response": []
+		},
+		{
+			"name": "Скачать готовый Markdown",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/files/:filename",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "files", ":filename"],
+					"variable": [
+						{
+							"key": "filename",
+							"value": "00000000-0000-0000-0000-000000000000_document.md",
+							"description": "Имя файла из поля filename ответа /api/convert"
+						}
+					]
+				},
+				"description": "Скачивает сохранённый Markdown-файл по имени, полученному в ответе /api/convert."
+			},
+			"response": []
+		},
+		{
+			"name": "Healthcheck",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/actuator/health",
+					"host": ["{{baseUrl}}"],
+					"path": ["actuator", "health"]
+				},
+				"description": "Проверка состояния приложения (Spring Boot Actuator)."
+			},
+			"response": []
+		}
+	]
+}
