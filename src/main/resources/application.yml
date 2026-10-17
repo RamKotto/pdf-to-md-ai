@@ -11,7 +11,7 @@ spring:
 
 app:
   storage:
-    directory: ../data/inbox
+    directory: ${user.dir}/data/inbox
     base-url: http://localhost:8080
   links:
     enabled: true
