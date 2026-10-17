@@ -1,5 +1,7 @@
 package application.service;
 
+import application.config.AppProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,9 +14,15 @@ import java.util.regex.Pattern;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class LinkResolverService {
 
-    private static final Pattern MARKDOWN_LINK = Pattern.compile("\\[([^\\]]+)\\]\\((https?://[^\\)]+)\\)");
+    private static final Pattern MARKDOWN_LINK = Pattern.compile("\\[([^\\]]+)]\\((https?://[^)\\s]+)\\)");
+    private static final Pattern BARE_URL = Pattern.compile("(?<![(\\[])(https?://[^\\s)\\]<>\"']+)");
+    private static final Pattern HTML_ANCHOR = Pattern.compile("<a\\s+[^>]*href=[\"'](https?://[^\"']+)[\"'][^>]*>",
+            Pattern.CASE_INSENSITIVE);
+
+    private final AppProperties props;
 
     public String enrichWithLinkedContent(String markdown, int maxLinks, int maxCharsPerLink) {
         Set<String> urls = extractUrls(markdown, maxLinks);
@@ -39,23 +47,29 @@ public class LinkResolverService {
         return enriched.toString();
     }
 
-    private Set<String> extractUrls(String markdown, int maxLinks) {
+    Set<String> extractUrls(String markdown, int maxLinks) {
         Set<String> urls = new LinkedHashSet<>();
-        Matcher matcher = MARKDOWN_LINK.matcher(markdown);
-        while (matcher.find() && urls.size() < maxLinks) {
-            String url = matcher.group(2);
-            if (url.startsWith("http")) {
-                urls.add(url);
-            }
-        }
+        collect(MARKDOWN_LINK.matcher(markdown), urls, maxLinks, 2);
+        collect(HTML_ANCHOR.matcher(markdown), urls, maxLinks, 1);
+        collect(BARE_URL.matcher(markdown), urls, maxLinks, 1);
         return urls;
     }
 
+    private void collect(Matcher matcher, Set<String> urls, int maxLinks, int group) {
+        while (matcher.find() && urls.size() < maxLinks) {
+            String url = matcher.group(group);
+            if (url != null && (url.startsWith("http://") || url.startsWith("https://"))) {
+                urls.add(url);
+            }
+        }
+    }
+
     private String fetchContent(String url) {
+        var links = props.getLinks();
         try {
             Document doc = Jsoup.connect(url)
-                    .timeout(10000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                    .timeout(links.getFetchTimeoutMs())
+                    .userAgent(links.getUserAgent())
                     .ignoreContentType(true)
                     .get();
             String contentType = doc.connection().response().contentType();

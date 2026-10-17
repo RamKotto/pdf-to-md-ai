@@ -13,13 +13,12 @@ public class HttpConfig {
     @Bean
     public RestClient openRouterRestClient(OpenRouterProperties props) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(30_000);
-        factory.setReadTimeout((int) Duration.ofSeconds(props.getTimeoutSeconds()).toMillis());
+        factory.setConnectTimeout(Duration.ofSeconds(props.getConnectTimeoutSeconds()));
+        factory.setReadTimeout(Duration.ofSeconds(props.getTimeoutSeconds()));
         return RestClient.builder()
                 .baseUrl(props.getBaseUrl())
                 .requestFactory(factory)
-                .defaultHeader("Authorization", "Bearer " + (props.getApiKey() == null
-                        ? "" : props.getApiKey()))
+                .defaultHeader("Authorization", "Bearer " + props.getApiKey())
                 .defaultHeader("HTTP-Referer", props.getReferer())
                 .defaultHeader("X-Title", props.getTitle())
                 .build();

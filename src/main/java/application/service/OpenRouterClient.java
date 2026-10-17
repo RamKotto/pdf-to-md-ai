@@ -1,6 +1,8 @@
 package application.service;
 
+import application.config.AppProperties;
 import application.config.OpenRouterProperties;
+import application.exception.OpenRouterException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -16,15 +18,14 @@ import java.util.Map;
 public class OpenRouterClient {
 
     private final OpenRouterProperties props;
+    private final AppProperties appProps;
     private final RestClient http;
-    private static final String PDF_PROMPT = "Ты — агент по преобразованию PDF в Markdown. " +
-            "Сохраняй весь текст. Восстанавливай таблицы. Только Markdown.";
-    private static final String TEXT_PROMPT = "Приведи текст к чистому Markdown. Не меняй содержание.";
-    private static final String SWAGGER_PROMPT = "Оформи Swagger/OpenAPI в Markdown. " +
-            "Сохрани эндпоинты, таблицы параметров. Только Markdown.";
 
-    public OpenRouterClient(OpenRouterProperties props, RestClient openRouterRestClient) {
+    public OpenRouterClient(OpenRouterProperties props,
+                            AppProperties appProps,
+                            RestClient openRouterRestClient) {
         this.props = props;
+        this.appProps = appProps;
         this.http = openRouterRestClient;
     }
 
@@ -39,9 +40,12 @@ public class OpenRouterClient {
 
     public String convertTextUrl(String url, String filename) {
         String content = downloadTextOrHtml(url);
-        String systemPrompt = isSwagger(content) ? SWAGGER_PROMPT : TEXT_PROMPT;
-        if (content.length() > 30000) {
-            content = content.substring(0, 30000);
+        String systemPrompt = isSwagger(content)
+                ? appProps.getPrompts().getSwagger()
+                : appProps.getPrompts().getText();
+        int maxChars = appProps.getLimits().getMaxTextChars();
+        if (content.length() > maxChars) {
+            content = content.substring(0, maxChars);
         }
         return callWithText(content, filename, systemPrompt);
     }
@@ -50,7 +54,7 @@ public class OpenRouterClient {
         Map<String, Object> body = Map.of(
                 "model", props.getModel(),
                 "messages", List.of(
-                        Map.of("role", "system", "content", PDF_PROMPT),
+                        Map.of("role", "system", "content", appProps.getPrompts().getPdf()),
                         Map.of("role", "user", "content", List.of(
                                 Map.of("type", "text", "text", "Преобразуй этот документ в Markdown."),
                                 Map.of("type", "file", "file",
@@ -87,22 +91,33 @@ public class OpenRouterClient {
                     .body(body)
                     .retrieve()
                     .body(Map.class);
-            if (response == null) throw new IllegalStateException("Пустой ответ");
+            if (response == null) {
+                throw new OpenRouterException("Пустой ответ от OpenRouter");
+            }
             var choices = (List<Map<String, Object>>) response.get("choices");
+            if (choices == null || choices.isEmpty()) {
+                throw new OpenRouterException("OpenRouter не вернул choices");
+            }
             var message = (Map<String, Object>) choices.get(0).get("message");
-            return (String) message.get("content");
+            Object content = message == null ? null : message.get("content");
+            if (content == null) {
+                throw new OpenRouterException("Пустой content в ответе OpenRouter");
+            }
+            return content.toString();
+        } catch (OpenRouterException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Ошибка OpenRouter для '{}'", label, e);
-            throw new RuntimeException("Ошибка OpenRouter: " + e.getMessage(), e);
+            throw new OpenRouterException(e.getMessage(), e);
         }
     }
 
     private String downloadTextOrHtml(String url) {
         try {
             var entity = RestClient.create().get().uri(URI.create(url)).retrieve().toEntity(String.class);
-            return entity.getBody();
+            return entity.getBody() == null ? "" : entity.getBody();
         } catch (Exception e) {
-            throw new RuntimeException("Не удалось скачать: " + url, e);
+            throw new OpenRouterException("Не удалось скачать: " + url, e);
         }
     }
 
