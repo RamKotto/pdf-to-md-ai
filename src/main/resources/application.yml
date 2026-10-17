@@ -6,27 +6,28 @@ spring:
     name: pdf-to-md
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 20MB
-  # Spring Boot Docker Compose сам поднимет контейнеры из ./docker-compose.yml
-  docker:
-    compose:
-      lifecycle-management: start-only
-      file: docker-compose.yml
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 app:
   storage:
-    ttl-minutes: 30
+    directory: ../data/inbox
     base-url: http://localhost:8080
-  llm:
+  links:
     enabled: true
-    base-url: http://localhost:8081/v1
-    api-key: local-no-auth
-    model: local-model
-    max-input-chars: 30000
-    timeout-seconds: 10000
+    max-links: 5
+    max-chars-per-link: 100000
+
+openrouter:
+  base-url: https://openrouter.ai/api/v1
+  api-key: ${OPENROUTER_API_KEY:}
+  model: qwen/qwen-2.5-vl-7b-instruct
+  max-output-tokens: 30000
+  timeout-seconds: 600
+  pdf-engine: mistral-ocr
+  referer: http://localhost:8080
+  title: pdf-to-md
 
 logging:
   level:
-    com.example.pdftomd: INFO
-    org.springframework.boot.docker: INFO
+    application: INFO

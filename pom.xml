@@ -1,100 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.2.5</version>
         <relativePath/>
     </parent>
-
     <groupId>com.example</groupId>
     <artifactId>pdf-to-md</artifactId>
-    <version>1.0.0</version>
+    <version>2.1.0</version>
     <name>pdf-to-md</name>
-    <description>Сервис конвертации PDF в Markdown с опциональной LLM-постобработкой</description>
-
     <properties>
         <java.version>21</java.version>
-        <pdfbox.version>3.0.2</pdfbox.version>
-        <openai-java.version>4.80.0</openai-java.version>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.17.2</version>
         </dependency>
-
-        <!--
-          Spring Boot Docker Compose: development-time зависимость.
-          Нужна только для локального запуска контейнеров.
-          Исключается из финального JAR через excludeDockerCompose=true.
-        -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-docker-compose</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!--
-          PDFBox для извлечения текста из PDF.
-          Исключаем commons-logging, чтобы избежать конфликта с spring-jcl
-          (предупреждение "Standard Commons Logging discovery in action with spring-jcl").
-        -->
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>${pdfbox.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Официальный Java-клиент для OpenAI API -->
-        <dependency>
-            <groupId>com.openai</groupId>
-            <artifactId>openai-java</artifactId>
-            <version>${openai-java.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!--
-                      Ключевой момент: excludeDockerCompose = true.
-                      Гарантирует, что spring-boot-docker-compose НЕ попадёт
-                      в финальный JAR при `mvn package`.
-                    -->
-                    <excludeDockerCompose>true</excludeDockerCompose>
-
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

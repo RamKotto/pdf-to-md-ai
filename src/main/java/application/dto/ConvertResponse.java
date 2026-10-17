@@ -1,4 +1,3 @@
 package application.dto;
 
-public record ConvertResponse(String downloadUrl, String expiresIn) {
-}
+public record ConvertResponse(String id, String filename, String downloadUrl, String markdown) {}

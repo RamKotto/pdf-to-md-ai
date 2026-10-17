@@ -2,26 +2,24 @@ package application.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import java.nio.file.Path;
-import java.time.Duration;
 
 @Data
-@ConfigurationProperties(prefix = "app.storage")
+@ConfigurationProperties(prefix = "app")
 public class AppProperties {
+    private Storage storage = new Storage();
+    private Links links = new Links();
 
-    /**
-     * Директория для временного хранения MD-файлов.
-     */
-    private Path directory = Path.of(System.getProperty("java.io.tmpdir"), "pdf-to-md");
+    @Data
+    public static class Storage {
+        private Path directory = Path.of("../data/inbox");
+        private String baseUrl = "http://localhost:8080";
+    }
 
-    /**
-     * Время жизни файла до принудительной уборки.
-     */
-    private Duration ttl = Duration.ofMinutes(30);
-
-    /**
-     * Базовый URL для формирования ссылок на скачивание.
-     */
-    private String baseUrl = "http://localhost:8080";
+    @Data
+    public static class Links {
+        private boolean enabled = true;
+        private int maxLinks = 5;
+        private int maxCharsPerLink = 5000;
+    }
 }
