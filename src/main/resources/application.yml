@@ -28,8 +28,8 @@ app:
 
 openrouter:
   base-url: https://openrouter.ai/api/v1
-  api-key: ${OPENROUTER_API_KEY:}
-  model: openrouter/free
+  api-key:
+  model: anthropic/claude-haiku-5.5
   max-output-tokens: 30000
   timeout-seconds: 600
   connect-timeout-seconds: 30
